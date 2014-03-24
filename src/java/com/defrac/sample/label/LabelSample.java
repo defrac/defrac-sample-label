@@ -25,6 +25,12 @@ class LabelSample extends GenericApp {
 
   @Override
   protected void onCreate() {
+    // First of all we load all resources necessary for this sample
+    // If you just use the alpha mask feature a neat shortcut to
+    // set a font is also label.font(BitmapFont.fromFnt("alpha.fnt", "alpha.png"))
+    //
+    // Usually you want to load a font upfront so you have it immediately available
+    // and the bounds of your label may be measured.
     ResourceGroup<?> resources =
       ResourceGroup.of(
           StringResource.from("alpha.fnt"),
@@ -38,6 +44,10 @@ class LabelSample extends GenericApp {
     resources.onComplete.attach(new Procedure<ResourceGroupEvent.Complete<?>>() {
       @Override
       public void apply(ResourceGroupEvent.Complete<?> resourceGroup) {
+        // When all resources are loaded we create the BitmapFont
+        // objects for them.
+        //
+        // Nothing special here so far.
         BitmapFont alphaFont =
           BitmapFont.fromFnt(
               (String)resourceGroup.contents.get(0),
@@ -60,32 +70,54 @@ class LabelSample extends GenericApp {
     resources.load();
   }
 
-  private void onResourcesComplete(BitmapFont alphaFont, BitmapFont copyPixelFont, BitmapFont sdfFont) {
+  void onResourcesComplete(BitmapFont alphaFont,
+                           BitmapFont copyPixelFont,
+                           BitmapFont sdfFont) {
+    float padding = 8.0f;
+
+    // We will need a rectangle to store the bounds of our labels
+    // and a point which we use to obtain pointer coordinates
+    final Rectangle rect = new Rectangle();
+    final Point point = new Point();
+
+    // The quad will be used to show the bounds of the label that is
+    // dynamically sized
     final Quad quad = addChild(new Quad(256.0f, 256.0f, 0xff602020));
+
+    // Finally create our labels
     final Label alphaFontLabel = addChild(new Label());
     final Label copyPixelLabel = addChild(new Label());
     final Label sdfLabel = addChild(new Label());
     final Label dynamicLabel = addChild(new Label());
-    final Rectangle rect = new Rectangle();
-    final Point point = new Point();
-    float padding = 8.0f;
+
     final String message =
         "This is some text to demonstrate word wrap. Move your mouse or drag your " +
         "finger across the screen (only if its a touch screen ;)) to " +
         "resize the text box. Press or touch to switch between different " +
         "alignments. Current alignment: ";
 
+    // Rendering via an alpha-mask is the default mode and no additional
+    // setup is necessary
     alphaFontLabel.
         font(alphaFont).
         color(0xffe0e0e0).
         text("This text is rendered using an alpha mask.");
 
+    // For the copy-pixel mode, we need to tell that the font should be
+    // rendered using the BitmapFontRenderMode.COPY mode
+    // You might also want to change the color to 0xffffffff since it is
+    // used to multiply the final color and can be used to change the style
+    // of your font.
     copyPixelFont.renderMode = BitmapFontRenderMode.COPY;
     copyPixelLabel.
         font(copyPixelFont).
         color(0xffffffff).
         text("This text is rendered by copying pixels.");
 
+    // For signed distance fields we also have to choose the correct render
+    // mode which is BitmapFontRenderMode.SIGNED_DISTANCE_FIELD. A very important
+    // aspect is the sdfSpread parameter. You have to fill in the value you used
+    // when generating your signed distance field.
     sdfFont.renderMode = BitmapFontRenderMode.SIGNED_DISTANCE_FIELD;
     sdfFont.sdfSpread = 6.0f;
     sdfLabel.
@@ -93,11 +125,15 @@ class LabelSample extends GenericApp {
         color(0xffe0e0e0).
         text("This text is rendered using a signed distance field.");
 
+    // The dynamic label uses the sdfFont -- the render mode of this font
+    // has already been set so there is nothing special to do
     dynamicLabel.
         font(sdfFont).
         color(0xffe0e0e0).
         text(message+"LEFT");
 
+    // At this point we do just some layout of the labels
+    // placing them below each other
     alphaFontLabel.
         moveTo(padding, padding).
         aabb(stage(), rect);
@@ -118,19 +154,30 @@ class LabelSample extends GenericApp {
     Events.onEnterFrame.attach(new Procedure<EnterFrameEvent>() {
       @Override
       public void apply(EnterFrameEvent event) {
+        // Each frame we want to animate the sdfLabel and scale it to
+        // a different size.
         float sin = (float) Math.sin(event.frame * 0.01f);
         sdfLabel.scaleTo(1.0f + 0.25f * sin, 1.0f + 0.25f * sin);
 
+        // The dynamic label shall be sized by the pointer coordinates.
+        // Therefore we ask the event manager for the coordinates of
+        // pointer 0.
         stage().eventManager().pointerPos(point, 0);
 
+        // .. offset those coordinates by the bounds of the label
         point.x -= rect.x;
         point.y -= rect.y;
 
         if(point.x > 0.0f && point.y > 0.0f) {
+          // ... and if they are still valid we update the size of the
+          //     label. It would be perfectly valid to change its
+          //     width only. The dynamicLabel.autoSize() maybe be changed
+          //     if you would want to switch back to a different mode.
           dynamicLabel.
               size(point.x, point.y).
               aabb(stage(), rect);
 
+          // Do not forget to show the bounds
           quad.
               size(rect.width, rect.height).
               moveTo(rect.x, rect.y);
@@ -141,6 +188,8 @@ class LabelSample extends GenericApp {
     Events.onPointerDown.attach(new Procedure<PointerEvent>() {
       @Override
       public void apply(PointerEvent pointerEvent) {
+        // Each time the user touches the screen (or clicks the mouse button)
+        // we want to switch the alignment of the label element.
         Label.AlignHorizontal align;
 
         switch(dynamicLabel.alignHorizontal()) {
