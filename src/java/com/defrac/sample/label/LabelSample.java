@@ -6,17 +6,18 @@ import defrac.display.Label;
 import defrac.display.Quad;
 import defrac.display.TextureData;
 import defrac.event.EnterFrameEvent;
+import defrac.event.EventListener;
 import defrac.event.Events;
 import defrac.event.PointerEvent;
-import defrac.event.ResourceGroupEvent;
 import defrac.geom.Point;
 import defrac.geom.Rectangle;
-import defrac.lang.Procedure;
 import defrac.resource.ResourceGroup;
 import defrac.resource.StringResource;
 import defrac.resource.TextureDataResource;
 import defrac.text.BitmapFont;
 import defrac.text.BitmapFontRenderMode;
+
+import java.util.List;
 
 class LabelSample extends GenericApp {
   public static void main(final String[] args) {
@@ -31,7 +32,7 @@ class LabelSample extends GenericApp {
     //
     // Usually you want to load a font upfront so you have it immediately available
     // and the bounds of your label may be measured.
-    ResourceGroup<?> resources =
+    ResourceGroup<Object> resources =
       ResourceGroup.of(
           StringResource.from("alpha.fnt"),
           StringResource.from("copy.fnt"),
@@ -41,27 +42,27 @@ class LabelSample extends GenericApp {
           TextureDataResource.from("sdf.png")
       );
 
-    resources.onComplete.attach(new Procedure<ResourceGroupEvent.Complete<?>>() {
+    resources.listener(new ResourceGroup.SimpleListener<Object>() {
       @Override
-      public void apply(ResourceGroupEvent.Complete<?> resourceGroup) {
+      public void onResourceGroupComplete(ResourceGroup<Object> group, List<Object> content) {
         // When all resources are loaded we create the BitmapFont
         // objects for them.
         //
         // Nothing special here so far.
         BitmapFont alphaFont =
           BitmapFont.fromFnt(
-              (String)resourceGroup.contents.get(0),
-              new TextureData[] { (TextureData)resourceGroup.contents.get(3) });
+              (String)content.get(0),
+              new TextureData[] { (TextureData)content.get(3) });
 
         BitmapFont copyPixelFont =
             BitmapFont.fromFnt(
-                (String)resourceGroup.contents.get(1),
-                new TextureData[] { (TextureData)resourceGroup.contents.get(4) });
+                (String)content.get(1),
+                new TextureData[] { (TextureData)content.get(4) });
 
         BitmapFont signedDistanceFieldFont =
             BitmapFont.fromFnt(
-                (String)resourceGroup.contents.get(2),
-                new TextureData[] { (TextureData)resourceGroup.contents.get(5) });
+                (String)content.get(2),
+                new TextureData[] { (TextureData)content.get(5) });
 
         onResourcesComplete(alphaFont, copyPixelFont, signedDistanceFieldFont);
       }
@@ -151,9 +152,9 @@ class LabelSample extends GenericApp {
 
     quad.size(rect.width, rect.height).moveTo(rect.x, rect.y);
 
-    Events.onEnterFrame.attach(new Procedure<EnterFrameEvent>() {
+    Events.onEnterFrame.add(new EventListener<EnterFrameEvent>() {
       @Override
-      public void apply(EnterFrameEvent event) {
+      public void onEvent(EnterFrameEvent event) {
         // Each frame we want to animate the sdfLabel and scale it to
         // a different size.
         float sin = (float) Math.sin(event.frame * 0.01f);
@@ -168,7 +169,7 @@ class LabelSample extends GenericApp {
         point.x -= rect.x;
         point.y -= rect.y;
 
-        if(point.x > 0.0f && point.y > 0.0f) {
+        if (point.x > 0.0f && point.y > 0.0f) {
           // ... and if they are still valid we update the size of the
           //     label. It would be perfectly valid to change its
           //     width only. The dynamicLabel.autoSize() maybe be changed
@@ -185,14 +186,14 @@ class LabelSample extends GenericApp {
       }
     });
 
-    Events.onPointerDown.attach(new Procedure<PointerEvent>() {
+    Events.onPointerDown.add(new EventListener<PointerEvent>() {
       @Override
-      public void apply(PointerEvent pointerEvent) {
+      public void onEvent(PointerEvent pointerEvent) {
         // Each time the user touches the screen (or clicks the mouse button)
         // we want to switch the alignment of the label element.
         Label.AlignHorizontal align;
 
-        switch(dynamicLabel.alignHorizontal()) {
+        switch (dynamicLabel.alignHorizontal()) {
           case LEFT:
             align = Label.AlignHorizontal.CENTER;
             break;
