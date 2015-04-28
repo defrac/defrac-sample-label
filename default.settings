@@ -1,15 +1,18 @@
 {
   "name": "Label Sample",
-  "package": "com.defrac.sample",
-  "identifier": "label",
-  "main": "com.defrac.sample.label.LabelSample",
+  "package": "com.defrac.sample.label",
   "version": "1.0",
+
+  "main": "com.defrac.sample.label.LabelSample",
+
   "targets": [
     "web",
     "jvm"
   ],
+
   "web": {
     "strictMode": "false",
-    "debug": "false"
-  }
+    "debug": "false",
+    "optimize": "true"
+  },
 }
