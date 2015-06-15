@@ -3,7 +3,7 @@
   "package": "com.defrac.sample.label",
   "version": "1.0",
 
-  "main": "com.defrac.sample.label.LabelSample",
+  "main": "com.defrac.sample.label.Main",
 
   "targets": [
     "web",
@@ -11,8 +11,8 @@
   ],
 
   "web": {
-    "strictMode": "false",
-    "debug": "false",
-    "optimize": "true"
-  },
+    "strictMode": false,
+    "debug": false,
+    "optimize": true
+  }
 }
