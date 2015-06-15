@@ -75,6 +75,18 @@ class LabelSample extends Screen {
     rootView(displayList);
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    displayList.onResume();
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    displayList.onPause();
+  }
+
   void onResourcesComplete(Stage stage,
                            BitmapFont alphaFont,
                            BitmapFont copyPixelFont,
