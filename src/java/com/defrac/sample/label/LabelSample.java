@@ -11,12 +11,12 @@ import defrac.resource.StringResource;
 import defrac.resource.TextureDataResource;
 import defrac.text.BitmapFont;
 import defrac.text.BitmapFontRenderMode;
+import defrac.ui.ContentScreen;
 import defrac.ui.DisplayList;
-import defrac.ui.Screen;
 
 import java.util.List;
 
-class LabelSample extends Screen {
+class LabelSample extends ContentScreen {
   private DisplayList displayList;
 
   @Override
